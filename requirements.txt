@@ -1,0 +1,9 @@
+flask>=2.2.5
+newspaper3k @ git+https://github.com/codelucas/newspaper.git
+requests>=2.31.0
+nltk>=3.8.1
+python-dotenv>=1.0.0
+flask-cors>=3.0.10
+transformers>=4.37.0
+torch>=2.2.0
+lxml_html_clean

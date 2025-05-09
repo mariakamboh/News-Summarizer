@@ -6,12 +6,22 @@ import requests
 from datetime import datetime
 import os
 from flask_cors import CORS
+from translate import Translator as LangTranslator
 
 # Download required NLTK data
 nltk.download('punkt', quiet=True)
 
 app = Flask(__name__)
 CORS(app)
+
+def translate_text(text, target_lang):
+    """Translate text to the specified language"""
+    try:
+        translator = LangTranslator(to_lang=target_lang)
+        translation = translator.translate(text)
+        return translation
+    except Exception as e:
+        return f"Error translating text: {str(e)}"
 
 def generate_summary(text, num_sentences=3):
     """Generate a summary by extracting key sentences"""
@@ -45,17 +55,6 @@ def get_article_info(url):
         return {'error': str(e)}
 
 
-
-def get_related_news(query, location=None):
-    # This is a placeholder. In a real app, you would use a news API
-    # like NewsAPI, GNews, or similar
-    return [
-        {
-            'title': f'Related news about {query} in {location}',
-            'url': '#'
-        }
-    ]
-
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -76,16 +75,18 @@ def summarize():
     # Generate summary
     summary = generate_summary(article_info['text'])
     
-    # Get related news (based on location if available)
-    location = article_info.get('publish_date', {}).get('location')
-    related_news = get_related_news(article_info['title'], location)
+    # Get language preference from request
+    lang = data.get('language', 'en')  # Default to English if no language specified
+    
+    # Translate summary if language is not English
+    if lang != 'en':
+        summary = translate_text(summary, lang)
     
     response = {
         'title': article_info['title'],
         'authors': article_info['authors'],
         'publish_date': article_info['publish_date'].isoformat() if article_info['publish_date'] else None,
         'summary': summary,
-        'related_news': related_news,
         'image': article_info['top_image']
     }
     

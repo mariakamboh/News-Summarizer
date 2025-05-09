@@ -4,6 +4,12 @@ import nltk
 from nltk.tokenize import sent_tokenize
 import traceback
 import logging
+from textblob import TextBlob
+import spacy
+import json
+
+# Load spaCy model
+nlp = spacy.load('en_core_web_sm')
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -56,6 +62,91 @@ def generate_summary(text, num_sentences=3):
         return ' '.join(sentences[:num_sentences])
     except Exception as e:
         return f"Error generating summary: {str(e)}"
+
+def categorize_news(text):
+    """Categorize news article based on content"""
+    try:
+        # Analyze sentiment
+        blob = TextBlob(text)
+        sentiment = blob.sentiment.polarity
+        
+        # Basic category classification based on keywords
+        categories = []
+        text_lower = text.lower()
+        
+        # Politics keywords
+        if any(word in text_lower for word in ['politics', 'government', 'election', 'president', 'congress']):
+            categories.append('Politics')
+        
+        # Technology keywords
+        if any(word in text_lower for word in ['technology', 'tech', 'software', 'hardware', 'internet', 'ai', 'artificial intelligence']):
+            categories.append('Technology')
+        
+        # Sports keywords
+        if any(word in text_lower for word in ['sports', 'football', 'basketball', 'soccer', 'olympics', 'championship']):
+            categories.append('Sports')
+        
+        # Business keywords
+        if any(word in text_lower for word in ['business', 'finance', 'market', 'stock', 'company', 'corporation']):
+            categories.append('Business')
+        
+        # Science keywords
+        if any(word in text_lower for word in ['science', 'research', 'study', 'discovery', 'experiment']):
+            categories.append('Science')
+        
+        # Health keywords
+        if any(word in text_lower for word in ['health', 'medicine', 'disease', 'vaccine', 'hospital']):
+            categories.append('Health')
+        
+        # Entertainment keywords
+        if any(word in text_lower for word in ['entertainment', 'movie', 'music', 'celebrity', 'show', 'award']):
+            categories.append('Entertainment')
+        
+        # Environment keywords
+        if any(word in text_lower for word in ['environment', 'climate', 'weather', 'pollution', 'sustainability']):
+            categories.append('Environment')
+        
+        # If no specific category found, classify based on sentiment
+        if not categories:
+            if sentiment > 0.2:
+                categories.append('Positive News')
+            elif sentiment < -0.2:
+                categories.append('Negative News')
+            else:
+                categories.append('General News')
+        
+        return {
+            'categories': list(set(categories)),  # Remove duplicates
+            'sentiment': sentiment,
+            'sentiment_polarity': 'Positive' if sentiment > 0 else 'Negative' if sentiment < 0 else 'Neutral'
+        }
+    except Exception as e:
+        return {'error': f'Error categorizing news: {str(e)}'}
+
+def extract_entities(text):
+    """Extract named entities from the text using spaCy"""
+    try:
+        doc = nlp(text)
+        entities = []
+        
+        for ent in doc.ents:
+            if ent.label_ in ['PERSON', 'ORG', 'GPE', 'LOC', 'DATE', 'TIME']:
+                entities.append({
+                    'text': ent.text,
+                    'label': ent.label_,
+                    'description': {
+                        'PERSON': 'Person',
+                        'ORG': 'Organization',
+                        'GPE': 'Geopolitical Entity',
+                        'LOC': 'Location',
+                        'DATE': 'Date',
+                        'TIME': 'Time'
+                    }.get(ent.label_, 'Unknown')
+                })
+        
+        return entities
+    except Exception as e:
+        return {'error': f'Error extracting entities: {str(e)}'}
 
 def get_related_news(query, location=None):
     """Get related news articles with images and metadata.
@@ -144,6 +235,10 @@ def summarize():
             # Get related news
             related_news = get_related_news(article_info['title'])
             
+            # Get categorization and entities
+            categorization = categorize_news(article_info['text'])
+            entities = extract_entities(article_info['text'])
+            
             # Prepare response
             response = {
                 'title': article_info.get('title', 'No title available'),
@@ -152,7 +247,13 @@ def summarize():
                 'publish_date': article_info.get('publish_date'),
                 'image': article_info.get('top_image'),
                 'related_news': related_news,
-                'original_url': url  # Include the original URL in the response
+                'original_url': url,
+                'categorization': {
+                    'categories': categorization.get('categories', []),
+                    'sentiment': categorization.get('sentiment', 0),
+                    'sentiment_polarity': categorization.get('sentiment_polarity', 'Neutral')
+                },
+                'entities': entities
             }
             
             return jsonify(response)

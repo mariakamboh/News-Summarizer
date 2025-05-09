@@ -5,48 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI News Summarizer</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        .news-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.3s ease;
-        }
-        .news-image:hover {
-            transform: scale(1.05);
-        }
-        .news-card:hover .news-image {
-            transform: scale(1.05);
-        }
-        .news-card {
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #9BAE91 0%, #D75C5C 100%);
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            height: 100%;
         }
-        .news-content {
+        
+        .container {
             flex: 1;
-            display: flex;
-            flex-direction: column;
         }
-        .news-description {
-            flex-grow: 1;
-        }
-    </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        .gradient-bg {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-        }
+        
         .card {
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 1rem;
+            border: 1px solid #FBC7A0;
+            background: #F47C7C;
         }
+        
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 30px rgba(97, 55, 55, 0.1);
         }
+        
         .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
+            border: 4px solid #FBC7A0;
+            border-top: 4px solid #D75C5C;
             border-radius: 50%;
             width: 30px;
             height: 30px;
@@ -54,71 +41,157 @@
             margin: 20px auto;
             display: none;
         }
+        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
+        .input-group {
+            background: #F47C7C;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .language-select {
+            background: #FBC7A0;
+            border: 1px solid #D75C5C;
+            color: #2D3C42;
+            padding: 0.75rem 1rem;
+        }
+        
+        .language-select option {
+            background: #FBC7A0;
+            color: #2D3C42;
+            padding: 0.5rem;
+        }
+        
+        .summary-card {
+            background: #FBC7A0;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .summary-content {
+            padding: 2.5rem;
+        }
+        
+        .article-image {
+            width: 100%;
+            height: 350px;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+            border-radius: 0.5rem;
+        }
+        
+        .article-image:hover {
+            transform: scale(1.05);
+        }
+        
+        .footer {
+            background: #2D3C42;
+            color: #FBC7A0;
+        }
+        
+        .footer p {
+            color: #FBC7A0;
+        }
+        
+        .text-primary {
+            color: #D75C5C;
+        }
+        
+        .bg-primary {
+            background-color: #D75C5C;
+        }
+        
+        .bg-primary:hover {
+            background-color: #B34D4D;
+        }
+        
+        .border-primary {
+            border-color: #D75C5C;
+        }
+        
+        .text-secondary {
+            color: #2D3C42;
+        }
+        
+        .bg-secondary {
+            background-color: #2D3C42;
+        }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
-<body class="bg-gray-50 min-h-screen">
-    <!-- Header -->
-    <header class="gradient-bg text-white py-8">
+    <body class="min-h-screen" style="background: linear-gradient(135deg, #9BAE91 0%, #D75C5C 100%);">
+        <!-- Header -->
+        <header class="text-white py-12">
         <div class="container mx-auto px-4">
-            <h1 class="text-4xl font-bold text-center mb-2">AI News Summarizer</h1>
-            <p class="text-center text-xl text-gray-200">Get concise summaries of any news article</p>
+            <div class="text-center">
+                <h1 class="text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white to-blue-200">
+                    News Summarizer
+                </h1>
+                <p class="text-xl text-gray-200 mb-8">
+                    Get concise summaries of any news article in your preferred language
+                </p>
+                <div class="max-w-2xl mx-auto">
+                    <div class="input-group flex flex-col sm:flex-row gap-4">
+                        <input type="text" id="articleUrl" 
+                               class="flex-grow px-6 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white text-gray-900"
+                               placeholder="Paste news article URL here...">
+                        <select id="languageSelect" 
+                                class="px-6 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white text-gray-900">
+                            <option value="en">English</option>
+                            <option value="ur">Urdu</option>
+                        </select>
+                        <button onclick="summarizeArticle()" 
+                                class="px-8 py-4 bg-primary hover:bg-blue-700 text-white font-semibold rounded-lg transition duration-200">
+                            <i class="fas fa-rocket mr-2"></i>
+                            Summarize
+                        </button>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-4">
+                        Example: https://www.bbc.com/news/world-europe-...
+                    </p>
+                </div>
+            </div>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main class="container mx-auto px-4 py-8">
-        <!-- URL Input -->
-        <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-6 mb-8">
-            <div class="flex">
-                <input type="text" id="articleUrl" 
-                       class="flex-grow px-4 py-3 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                       placeholder="Paste news article URL here...">
-                <button onclick="summarizeArticle()" 
-                        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-r-lg transition duration-200">
-                    Summarize
-                </button>
-            </div>
-            <p class="text-sm text-gray-500 mt-2">Example: https://www.bbc.com/news/world-europe-...</p>
-        </div>
-
+    <main class="container mx-auto px-4 py-12">
         <!-- Results Section -->
         <div id="results" class="hidden">
-            <!-- Article Summary -->
-            <div class="max-w-3xl mx-auto mb-8">
-                <h2 class="text-2xl font-bold mb-4 text-gray-800">Summary</h2>
-                <div class="bg-white rounded-lg shadow-md p-6 card">
+            <div class="max-w-3xl mx-auto mb-16">
+                <h2 class="text-3xl font-bold mb-8 text-secondary">Article Summary</h2>
+                <div class="summary-card">
                     <div id="loader" class="loader"></div>
-                    <div id="summaryContent">
-                        <h3 id="articleTitle" class="text-xl font-semibold mb-3 text-gray-800"></h3>
-                        <div class="flex items-center text-sm text-gray-500 mb-4">
-                            <span id="articleAuthor" class="mr-4"></span>
-                            <span id="articleDate"></span>
+                    <div id="summaryContent" class="summary-content">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+                            <div class="flex items-center text-sm text-secondary mb-4">
+                                <span id="articleAuthor" class="mr-4"></span>
+                                <span id="articleDate"></span>
+                            </div>
+                            <div class="flex items-center text-sm text-secondary">
+                                <i class="fas fa-globe mr-2"></i>
+                                <span id="languageDisplay">English</span>
+                            </div>
                         </div>
-                        <div id="articleImage" class="mb-4"></div>
-                        <p id="summaryText" class="text-gray-700 leading-relaxed"></p>
+                        <h3 id="articleTitle" class="text-2xl font-bold mb-6 text-secondary"></h3>
+                        <div id="articleImage" class="mb-8"></div>
+                        <p id="summaryText" class="text-secondary leading-relaxed text-lg"></p>
                     </div>
-                </div>
-            </div>
-
-            <!-- Related News -->
-            <div class="max-w-3xl mx-auto">
-                <h2 class="text-2xl font-bold mb-4 text-gray-800">Related News</h2>
-                <div id="relatedNews" class="grid gap-4">
-                    <!-- Related news items will be added here -->
                 </div>
             </div>
         </div>
     </main>
 
-
     <!-- Footer -->
-    <footer class="bg-gray-800 text-white py-6 mt-12">
+    <footer class="footer py-8 mt-16">
         <div class="container mx-auto px-4 text-center">
-            <p>© 2023 AI News Summarizer. All rights reserved.</p>
+            <p class="text-primary"> 2025 News Summarizer. All rights reserved.</p>
+            
         </div>
     </footer>
 
@@ -129,6 +202,11 @@
                 alert('Please enter a valid URL');
                 return;
             }
+
+            // Get selected language
+            const language = document.getElementById('languageSelect').value;
+            const languageDisplay = document.getElementById('languageDisplay');
+            languageDisplay.textContent = language === 'en' ? 'English' : 'Urdu';
 
             // Show loader
             const loader = document.getElementById('loader');
@@ -145,7 +223,7 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ url })
+                    body: JSON.stringify({ url, language })
                 });
 
                 if (!response.ok) {
@@ -173,46 +251,6 @@
                     imageContainer.innerHTML = '';
                 }
 
-                // Update related news
-                const relatedNewsContainer = document.getElementById('relatedNews');
-                if (data.related_news && data.related_news.length > 0) {
-                    relatedNewsContainer.innerHTML = `
-                        <h3 class="text-2xl font-bold mb-6 text-gray-800">Related News</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            ${data.related_news.map(news => `
-                                <div 
-                                    class="news-card bg-white rounded-xl shadow-md overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-                                    onclick="summarizeRelatedNews('${encodeURIComponent(news.url)}')"
-                                >
-                                    <div class="h-48 overflow-hidden bg-gray-100">
-                                        <img 
-                                            src="${news.image}" 
-                                            alt="${news.title}" 
-                                            class="news-image"
-                                            onerror="this.onerror=null; this.src='https://via.placeholder.com/400x250?text=No+Image+Available'"
-                                            loading="lazy"
-                                        />
-                                    </div>
-                                    <div class="news-content p-4">
-                                        <div class="text-sm text-gray-500 mb-1">${news.source} • ${new Date(news.published_at).toLocaleDateString()}</div>
-                                        <h4 class="font-semibold text-gray-800 mb-2 line-clamp-2">${news.title}</h4>
-                                        <p class="news-description text-gray-600 text-sm mb-3 line-clamp-2">${news.description}</p>
-                                        <div class="mt-auto">
-                                            <button class="text-blue-600 hover:text-blue-800 font-medium text-sm">
-                                                Summarize this article
-                                                <svg class="w-4 h-4 inline-block ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>`;
-                } else {
-                    relatedNewsContainer.innerHTML = '<p class="text-gray-600">No related news found.</p>';
-                }
-
             } catch (error) {
                 let errorMessage = 'An error occurred while processing your request.';
                 if (error instanceof SyntaxError) {
@@ -229,7 +267,6 @@
             }
         }
 
-
         // Allow pressing Enter key to trigger summarization
         document.getElementById('articleUrl').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
@@ -237,76 +274,11 @@
             }
         });
 
-        // Function to handle related news click
-        async function summarizeRelatedNews(rawUrl, event) {
-            // Prevent the default link behavior
-            if (event) {
-                event.preventDefault();
-                event.stopPropagation();
-            }
-            
-            try {
-                // Show loading state
-                const loader = document.getElementById('loader');
-                const summaryContent = document.getElementById('summaryContent');
-                const results = document.getElementById('results');
-                
-                loader.style.display = 'block';
-                summaryContent.style.display = 'none';
-                results.scrollIntoView({ behavior: 'smooth' });
-                
-                // Decode the URL first in case it's encoded
-                let url = decodeURIComponent(rawUrl);
-                
-                // Clean up the URL
-                url = url.trim();
-                if (!url.match(/^https?:\/\//)) {
-                    url = 'https://' + url;
-                }
-                
-                console.log('Processing related article URL:', url);
-                
-                try {
-                    // Make the API request
-                    const response = await fetch('/summarize', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ url: url })
-                    });
-                    
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || 'Failed to summarize article');
-                    }
-                    
-                    const data = await response.json();
-                    
-                    // Update the UI with the response
-                    updateUIWithArticleData(data);
-                    
-                } catch (error) {
-                    console.error('Error in summarizeRelatedNews:', error);
-                    alert('Error: ' + (error.message || 'Failed to process the article. Please try again.'));
-                } finally {
-                    // Hide loader and show content
-                    loader.style.display = 'none';
-                    summaryContent.style.display = 'block';
-                }
-                
-            } catch (error) {
-                console.error('Unexpected error in summarizeRelatedNews:', error);
-                alert('An unexpected error occurred. Please try again.');
-            }
-        }
-
         // Initialize the app
         document.getElementById('summarizeBtn').addEventListener('click', summarizeArticle);
         
         // Make summarizeArticle available globally
         window.summarizeArticle = summarizeArticle;
-        window.summarizeRelatedNews = summarizeRelatedNews;
     </script>
 </body>
 </html>

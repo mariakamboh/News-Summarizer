@@ -23,16 +23,32 @@ def translate_text(text, target_lang):
     except Exception as e:
         return f"Error translating text: {str(e)}"
 
-def generate_summary(text, num_sentences=3):
-    """Generate a summary by extracting key sentences"""
+from transformers import BartTokenizer, BartForConditionalGeneration
+import torch
+
+# Initialize BART model and tokenizer
+model_name = "facebook/bart-large-cnn"
+tokenizer = BartTokenizer.from_pretrained(model_name)
+model = BartForConditionalGeneration.from_pretrained(model_name)
+
+def generate_summary(text, max_length=130, min_length=30):
+    """Generate a summary using BART model"""
     try:
-        # Tokenize the text into sentences
-        sentences = sent_tokenize(text)
+        # Tokenize input text
+        inputs = tokenizer.encode("summarize: " + text, return_tensors="pt", max_length=1024, truncation=True)
         
-        # Simple heuristic: take the first few sentences as summary
-        # In a real application, you might want to implement more sophisticated
-        # summarization techniques or use a different library
-        summary = ' '.join(sentences[:num_sentences])
+        # Generate summary
+        summary_ids = model.generate(
+            inputs,
+            max_length=max_length,
+            min_length=min_length,
+            length_penalty=2.0,
+            num_beams=4,
+            early_stopping=True
+        )
+        
+        # Decode and return summary
+        summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
         return summary
     except Exception as e:
         return f"Error generating summary: {str(e)}"

@@ -1,5 +1,5 @@
 flask>=2.2.5
-newspaper3k @ git+https://github.com/codelucas/newspaper.git
+newspaper3k
 requests>=2.31.0
 nltk>=3.8.1
 python-dotenv>=1.0.0
